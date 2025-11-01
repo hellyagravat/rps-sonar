@@ -21,3 +21,9 @@ jobs:
           target: 'https://demo.testfire.net'
           cmd_options: '-a'
         continue-on-error: true
+        
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-report
+          path: zap_report.html
