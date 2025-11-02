@@ -1,7 +1,10 @@
-name: OWASP ZAP Scan with Report
+name: OWASP ZAP Baseline Scan with Report
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # allows you to run manually
+  push:
+    branches:
+      - main
 
 jobs:
   zap_scan:
@@ -11,13 +14,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Run ZAP Baseline scan against a target (you can change the URL)
       - name: Run OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.11.0
-        with:
-          target: 'https://demo.testfire.net'
-          cmd_options: '-a -r zap_report.html'
+        run: |
+          docker run --user root \
+            -v ${{ github.workspace }}:/zap/wrk/:rw \
+            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+            -t https://demo.testfire.net \
+            -r /zap/wrk/zap_report.html
+        continue-on-error: true
 
-      - name: Upload ZAP HTML Report
+      # Check if the file was created (for debugging)
+      - name: List files in workspace
+        run: ls -al ${{ github.workspace }}
+
+      # Upload report as artifact
+      - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
           name: zap-report
