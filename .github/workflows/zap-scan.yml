@@ -1,27 +1,26 @@
-name: OWASP ZAP Scan - demo.testfire.net
+name: OWASP ZAP Scan
 
 on:
-  workflow_dispatch:
-  push:
-    branches: [ "main" ]
+  workflow_dispatch:  # allows manual run from Actions tab
+  push:                # optional – runs when you push code
+    branches:
+      - main
 
 jobs:
   zap_scan:
     runs-on: ubuntu-latest
-    name: ZAP Baseline Scan (demo.testfire)
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-
       - name: Run OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.10.0
-        with:
-          target: 'https://demo.testfire.net'
-          cmd_options: '-a'
-        continue-on-error: true
-        
+        run: |
+          docker run -v $(pwd):/zap/wrk/:rw --network="host" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+            -t https://demo.testfire.net \
+            -r zap_report.html
+        continue-on-error: true  # even if some alerts exist, continue to next step
+
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
